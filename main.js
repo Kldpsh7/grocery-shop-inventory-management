@@ -1,4 +1,4 @@
-const baseUrl='https://crudcrud.com/api/7c20eb2a7dab41ddbf6b17d27dbf1e6f/shop'
+const baseUrl='https://crudcrud.com/api/10ac90987a2b44699c90369479505ab1/shop'
 
 document.getElementById('inputForm').addEventListener('submit',(e)=>{
     e.preventDefault()
@@ -10,16 +10,17 @@ document.getElementById('inputForm').addEventListener('submit',(e)=>{
         disc,
         quant
     };
-    axios.post(baseUrl,obj)
-    .then((res)=>{
-        console.log(res.data)
-        displayItem(res.data)
-        document.getElementById('name').value='';
-        document.getElementById('disc').value='';
-        document.getElementById('quant').value='';
-    })
-    .catch((err)=>console.log(err))
+    Post(obj)
 })
+
+async function Post(obj){
+    let res = await axios.post(baseUrl,obj)
+    console.log(res.data);
+    displayItem(res.data);
+    document.getElementById('name').value='';
+    document.getElementById('disc').value='';
+    document.getElementById('quant').value='';
+}
 
 function displayItem(item){
     let li=document.createElement('li');
@@ -46,7 +47,7 @@ document.getElementById('list').addEventListener('click',e=>{
         let eid=e.target.parentElement.id;
         let buying=parseInt(e.target.parentElement.lastElementChild.value);
         let stock=parseInt(e.target.parentElement.firstElementChild.innerText.split(' || ')[2]);
-        if (buying<1){
+        if (buying<1 || !buying){
             alert('Please enter a valid buying quantity');
         }
         else if (buying>stock){
@@ -61,26 +62,21 @@ document.getElementById('list').addEventListener('click',e=>{
                 disc,
                 quant
             }
-            axios.put(`${baseUrl}/${eid}`,obj)
-            .then(res=>{
-                axios.get(`${baseUrl}/${eid}`)
-                .then(res=>{
-                    document.getElementById(eid).firstElementChild.innerText=`${res.data.name} || ${res.data.disc} || ${res.data.quant}`;
-                    document.getElementById(eid).lastElementChild.value='';
-                })
-                .catch(err=>console.log(err))
-            })
-            .catch(err=>console.log(err))
+            updateStock(obj,eid)
         }
     }
 })
+async function updateStock(obj,eid){
+    await axios.put(`${baseUrl}/${eid}`,obj)
+    let res=await axios.get(`${baseUrl}/${eid}`)
+    document.getElementById(eid).firstElementChild.innerText=`${res.data.name} || ${res.data.disc} || ${res.data.quant}`;
+    document.getElementById(eid).lastElementChild.value='';
+}
 
-window.addEventListener('DOMContentLoaded',()=>{
-    axios.get(baseUrl)
-    .then(res=>{
-        res.data.forEach(element => {
-            displayItem(element)
-        });
-    })
-    .catch((err)=>console.log(err))
-})
+window.addEventListener('DOMContentLoaded',paintDOM)
+async function paintDOM(){
+    let res=await axios.get(baseUrl)
+    res.data.forEach(element => {
+        displayItem(element)
+    });
+}    
